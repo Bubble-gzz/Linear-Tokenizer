@@ -13,9 +13,11 @@ FILE *vocab_file,*text_file,*result_file;
 
 void build(char *buff)
 {
-    int now=root,q,child;
+    int now=root,q,child,wordType,begin;
     strlwr(buff);
-    for (int i=0;i<strlen(buff);i++)
+    if (buff[0]=='#') begin=2,wordType=1;
+    else begin=0,wordType=2;
+    for (int i=begin;i<strlen(buff);i++)
     {
         if (buff[i]<'a' || buff[i]>'z') continue;
         child=buff[i]-'a';
@@ -31,7 +33,7 @@ void build(char *buff)
         }
         else now=trie[now][child];
     }
-    isEnd[now]=1;
+    isEnd[now]=wordType;
 }
 void tokenize(char* begin,char* end)
 {
@@ -44,7 +46,7 @@ void tokenize(char* begin,char* end)
         if (trie[now][child])
         {
             now=trie[now][child];
-            if (isEnd[now]) maxMatch=now;
+            if (isEnd[now]==1 || (isEnd[now]==2 && dn==0 && i+1==end)) maxMatch=now;
             if (i+1==end) cut=2;
         } else cut=1;
         if (cut) {
