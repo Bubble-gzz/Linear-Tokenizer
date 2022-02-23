@@ -1,0 +1,11 @@
+{
+    "files.associations": {
+        "queue": "cpp",
+        "xmemory": "cpp",
+        "vector": "cpp",
+        "xtree": "cpp",
+        "utility": "cpp",
+        "algorithm": "cpp"
+    },
+    "C_Cpp.default.configurationProvider": "ms-vscode.cmake-tools"
+}
