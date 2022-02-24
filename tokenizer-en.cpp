@@ -8,6 +8,7 @@ const int root=1;
 int dn,dEnd[N];
 FILE *vocab_file,*text_file,*result_file;
 
+int tot;
 struct trieNode{
     int jump,isEnd,dep;
     int children[26];
@@ -16,13 +17,12 @@ struct trieNode{
         int id=ch-'a';
         return children[id];
     }
-    int addChild(char ch)
+    void addChild(char ch)
     {
         int id=ch-'a';
         children[id]=++tot;
     }
 }trie[N];
-int tot;
 
 void build(char *buff)
 {
