@@ -44,6 +44,7 @@ Step-1. Put the data in `vocab.in` and `text.in` respectively.
 Step-2. Run the command `g++ -o tokenize.exe tokenizer-en.cpp` to compile `tokenizer.cpp`.
 
 Step-3. Run the command `./tokenize.exe` to run the tool.
+
 Step-4. See the generated result in `result.out`.
 
 ## Current Mission
