@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <string.h>
+#include <queue>
 
 const int N=200005;
 const int maxL=100000;
@@ -9,9 +10,15 @@ int dn,dEnd[N];
 FILE *vocab_file,*text_file,*result_file;
 
 int tot;
+using namespace std;
+
 struct trieNode{
-    int jump,isEnd,dep;
+    char ch;
+    int jump,father,isEnd,dep;
+    int dead,loc,maxMatch;
+    int lastLen,last;
     int children[26];
+    vector<int> childList;
     int getChild(char ch)
     {
         int id=ch-'a';
@@ -21,6 +28,7 @@ struct trieNode{
     {
         int id=ch-'a';
         children[id]=++tot;
+        childList.push_back(tot);
     }
 }trie[N];
 
@@ -40,15 +48,40 @@ void build(char *buff)
         {
             trie[now].addChild(ch);
             trie[tot].dep=trie[now].dep+1;
-            q=trie[now].jump;
-            while (!trie[q].getChild(ch) && q!=root) q=trie[q].jump; 
-            if (trie[q].getChild(ch)) trie[tot].jump=trie[q].getChild(ch);
-            else trie[tot].jump=root;
+            trie[tot].father=now;
+            trie[tot].ch=ch;
             now=tot;
         }
         else now=trie[now].getChild(ch);
     }
     trie[now].isEnd=wordType;
+}
+queue<int> que;
+void Initialize()
+{
+    int now,q;
+    char ch;
+    que.push(root);
+    while (!que.empty())
+    {
+        now=que.front();
+        que.pop();
+        for (int i=0;i<trie[now].childList.size();i++)
+            que.push(trie[now].childList[i]);
+        if (now!=root)
+        {
+            if (trie[now].father==root) trie[now].jump=root;
+            else
+            {
+                ch=trie[now].ch;
+                q=trie[trie[now].father].jump;
+                while (q!=root && !trie[q].getChild(ch)) q=trie[q].jump;
+                if (trie[q].getChild(ch)) trie[now].jump=trie[q].getChild(ch);
+                else trie[now].jump=root;
+            }
+        }
+    }
+    for (int i=1;i<=tot;i++) printf("jump[%d]=%d\n",i,trie[i].jump);
 }
 void tokenize(char* begin,char* end)
 {
@@ -98,6 +131,8 @@ int main()
 
     while (fgets(buff,maxL,vocab_file)!=NULL)
         build(buff);
+    Initialize();
+
     while (fgets(buff,maxL,text_file)!=NULL)
     {
         int i=0,j;

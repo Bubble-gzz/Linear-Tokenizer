@@ -50,6 +50,6 @@ Step-4. See the generated result in `result.out`.
 ## Current Mission
 - differentiate word and word-piece √
 
-- code refactor
+- code refactor √
 
 - apply the linear f-pop algorithm
