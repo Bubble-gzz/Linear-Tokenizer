@@ -17,7 +17,7 @@ class Color:
 
 os.system("g++ tokenizer-en.cpp -o tokenizer-en.exe")
 print("Compiling")
-for i in range(1, 5):
+for i in range(1, 6):
     os.system(f"cp test/text{i}.in text.in")
     os.system(f"cp test/vocab{i}.in vocab.in")
     os.system("tokenizer-en.exe")
