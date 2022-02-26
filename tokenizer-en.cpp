@@ -16,11 +16,12 @@ struct trieNode{
     char ch;
     int jump,father,isEnd,dep;
     int dead,loc,maxMatch;
-    int lastLen,last;
     int children[26];
     vector<int> childList;
+    vector<int> fpop;
     int getChild(char ch)
     {
+        if (ch<'a' || ch>'z') return 0;
         int id=ch-'a';
         return children[id];
     }
@@ -56,10 +57,44 @@ void build(char *buff)
     }
     trie[now].isEnd=wordType;
 }
+void tokenize(char* begin,char* end)
+{
+    int now=root,fail=0,maxMatch=root,cut,redundent;
+    char ch;
+    dEnd[dn=0]=-1;
+    *(end-1)='*';
+    for (char* i=begin;i!=end;i++)
+    {
+        ch=(*i);
+        if (begin+dEnd[dn]+2==end) break;
+        cut=0;
+        if (trie[now].getChild(ch))
+        {
+            now=trie[now].getChild(ch);
+            if (trie[now].isEnd==1 || (trie[now].isEnd==2 && dn==0 && i+2==end)) maxMatch=now;
+        } else cut=1;
+        if (cut) {
+            if (maxMatch==root) {fail=1; break; }
+            dn++; dEnd[dn]=dEnd[dn-1]+trie[maxMatch].dep;
+            redundent=trie[now].dep-trie[maxMatch].dep;
+            i=i-redundent-1; // i-redundent is wrong
+            now=root; maxMatch=root;
+        }
+    }
+    if (fail) fputs("unk\n",result_file);
+    else
+    {
+        for (int i=1;i<=dn;i++)
+        {
+            for (int j=dEnd[i-1]+1;j<=dEnd[i];j++) fputc(*(begin+j),result_file);
+            fprintf(result_file,"\n");
+        }
+    }
+}
 queue<int> que;
 void Initialize()
 {
-    int now,q;
+    int now,fa,q;
     char ch;
     que.push(root);
     while (!que.empty())
@@ -70,60 +105,33 @@ void Initialize()
             que.push(trie[now].childList[i]);
         if (now!=root)
         {
-            if (trie[now].father==root) trie[now].jump=root;
+            fa=trie[now].father;
+            if (fa==root) trie[now].jump=root;
             else
             {
                 ch=trie[now].ch;
-                q=trie[trie[now].father].jump;
+                q=trie[fa].jump;
                 while (q!=root && !trie[q].getChild(ch)) q=trie[q].jump;
                 if (trie[q].getChild(ch)) trie[now].jump=trie[q].getChild(ch);
                 else trie[now].jump=root;
             }
+        //    if (trie[fa].dead) trie[now].dead=1;
+        //    else {
+        //        q=trie[fa].loc;
+        //    }
+
         }
     }
     for (int i=1;i<=tot;i++) printf("jump[%d]=%d\n",i,trie[i].jump);
 }
-void tokenize(char* begin,char* end)
-{
-    int now=root,child,fail=0,maxMatch=root,cut,redundent;
-    char ch;
-    dEnd[dn=0]=-1;
-    for (char* i=begin;i!=end;i++)
-    {
-        ch=(*i);
-        child=ch-'a';
-        cut=0;
-        if (trie[now].getChild(ch))
-        {
-            now=trie[now].getChild(ch);
-            if (trie[now].isEnd==1 || (trie[now].isEnd==2 && dn==0 && i+1==end)) maxMatch=now;
-            if (i+1==end) cut=2;
-        } else cut=1;
-        if (cut) {
-            if (maxMatch==root) {fail=1; break; }
-            dn++; dEnd[dn]=dEnd[dn-1]+trie[maxMatch].dep;
-            redundent=trie[now].dep-trie[maxMatch].dep;
-            if (cut==2) {
-                i=i-redundent;
-                if (begin+dEnd[dn]+1==end) break;
-            }
-            else i=i-redundent-1; // i-redundent is wrong
-            now=root; maxMatch=root;
-        }
-    }
-    if (fail) fputs("unk\n",result_file);
-    else {
-        for (int i=1;i<=dn;i++)
-        {
-            for (int j=dEnd[i-1]+1;j<=dEnd[i];j++) fputc(*(begin+j),result_file);
-            fprintf(result_file,"\n");
-        }
-    }
-}
+
 int main()
 {
     char buff[maxL];
-    trie[1].jump=1; tot=1;
+    
+    tot=1; 
+    trie[root].jump=root; trie[root].dead=0;
+    trie[root].loc=root; trie[root].maxMatch=root;
 
     vocab_file=fopen("vocab.in","r");
     text_file=fopen("text.in","r");
@@ -141,7 +149,7 @@ int main()
         while (i<strlen(buff))
         {
             for (j=i+1;buff[j]>='a' && buff[j]<='z';j++);
-            tokenize(buff+i,buff+j);
+            tokenize(buff+i,buff+j+1);
             i=j+1;
             while (i<strlen(buff) && (buff[i]<'a' || buff[i]>'z')) i++;
         }
