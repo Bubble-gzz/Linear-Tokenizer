@@ -4,6 +4,7 @@
 
 const int N=200005;
 const int maxL=100000;
+const int wordLen=100;
 const int root=1;
 
 int dn,dEnd[N];
@@ -57,16 +58,18 @@ void build(char *buff)
     }
     trie[now].isEnd=wordType;
 }
-void tokenize(char* begin,char* end)
+void tokenize(char* begin,char* end,int mode,trieNode &res)
 {
     int now=root,fail=0,maxMatch=root,cut,redundent;
+    int cutted=0;
     char ch;
     dEnd[dn=0]=-1;
-    *(end-1)='*';
+    *(end-1)='*'; //trunc at the end
     for (char* i=begin;i!=end;i++)
     {
         ch=(*i);
-        if (begin+dEnd[dn]+2==end) break;
+        if (mode==1 && begin+dEnd[dn]+2==end) break;
+        if (mode==0 && i+1==end && cutted) break;
         cut=0;
         if (trie[now].getChild(ch))
         {
@@ -79,23 +82,38 @@ void tokenize(char* begin,char* end)
             redundent=trie[now].dep-trie[maxMatch].dep;
             i=i-redundent-1; // i-redundent is wrong
             now=root; maxMatch=root;
+            if (mode==0) cutted=1;
         }
     }
-    if (fail) fputs("unk\n",result_file);
+    if (mode==1)
+    {
+        if (fail) fputs("unk\n",result_file);
+        else
+        {
+            for (int i=1;i<=dn;i++)
+            {
+                for (int j=dEnd[i-1]+1;j<=dEnd[i];j++) fputc(*(begin+j),result_file);
+                fprintf(result_file,"\n");
+            }
+        }
+    }
     else
     {
-        for (int i=1;i<=dn;i++)
+        if (fail) res.dead=1;
+        else
         {
-            for (int j=dEnd[i-1]+1;j<=dEnd[i];j++) fputc(*(begin+j),result_file);
-            fprintf(result_file,"\n");
+            res.dead=0;
+            for (int i=1;i<=dn;i++)
+                res.fpop.push_back(dEnd[i]);
         }
     }
 }
 queue<int> que;
 void Initialize()
 {
-    int now,fa,q;
+    int now,fa,q,l;
     char ch;
+    char buff[wordLen],temp[wordLen];
     que.push(root);
     while (!que.empty())
     {
@@ -115,6 +133,15 @@ void Initialize()
                 if (trie[q].getChild(ch)) trie[now].jump=trie[q].getChild(ch);
                 else trie[now].jump=root;
             }
+            q=now; l=0;
+            while (q!=root) temp[l++]=trie[q].ch,q=trie[q].father;
+            for (int i=l-1;i>=0;i--) buff[l-i-1]=temp[i];
+            for (int i=0;i<=l;i++) printf("%c",buff[i]);
+            printf(" fpop=[");
+            
+            tokenize(buff,buff+l+1,0,trie[now]);
+            for (size_t i=0;i<trie[now].fpop.size();i++) printf("%d ,",trie[now].fpop[i]);
+            printf("]\n");
         //    if (trie[fa].dead) trie[now].dead=1;
         //    else {
         //        q=trie[fa].loc;
@@ -149,7 +176,7 @@ int main()
         while (i<strlen(buff))
         {
             for (j=i+1;buff[j]>='a' && buff[j]<='z';j++);
-            tokenize(buff+i,buff+j+1);
+            tokenize(buff+i,buff+j+1,1,trie[root]);
             i=j+1;
             while (i<strlen(buff) && (buff[i]<'a' || buff[i]>'z')) i++;
         }
