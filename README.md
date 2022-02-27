@@ -3,10 +3,10 @@
 This is a high-efficiency toolkit which can tokenize a given text with linear time complexity.
 |Process|Time Complexity|
 |:---:|:---:|
-|Preprocessing|O(M)|
+|Preprocessing|O(ML)|
 |Tokenization|O(N)|
 - M: Total number of the characters in the vocabulary
-
+- L: Average Length of the words in the vocabulary
 - N: Total length of the text
 ### Tools for Different Language
 English:tokenizer-en (brute version)
@@ -52,4 +52,6 @@ Step-4. See the generated result in `result.out`.
 
 - code refactor √
 
-- apply the linear f-pop algorithm
+- apply the linear f-pop algorithm √
+
+- optimize the preprocessing

@@ -77,14 +77,38 @@ void tokenize(char* begin,char* end,int mode,trieNode &res)
             if (trie[now].isEnd==1 || (trie[now].isEnd==2 && dn==0 && i+2==end)) maxMatch=now;
         } else cut=1;
         if (cut) {
-            if (maxMatch==root) {fail=1; break; }
-            dn++; dEnd[dn]=dEnd[dn-1]+trie[maxMatch].dep;
-            redundent=trie[now].dep-trie[maxMatch].dep;
-            i=i-redundent-1; // i-redundent is wrong
-            now=root; maxMatch=root;
-            if (mode==0) cutted=1;
+            if (mode==1)
+            {
+                while (!trie[now].getChild(ch))
+                {
+                    if (trie[now].dead) {
+                        if (now==root && ch=='*') fail=2;
+                        else fail=1;
+                        break;
+                    }
+                    redundent=0;
+                    for (int i=0;i<trie[now].fpop.size();i++) {
+                        redundent+=trie[now].fpop[i];
+                        dn++; dEnd[dn]=dEnd[dn-1]+trie[now].fpop[i];
+                    }
+                    redundent=trie[now].dep-redundent;
+                    while (trie[now].dep!=redundent) now=trie[now].jump;
+                }
+                if (fail) break;
+                now=trie[now].getChild(ch);
+            }
+            else
+            {
+                if (maxMatch==root) {fail=1; break; }
+                dn++; dEnd[dn]=dEnd[dn-1]+trie[maxMatch].dep;
+                redundent=trie[now].dep-trie[maxMatch].dep;
+                i=i-redundent-1; // i-redundent is wrong
+                now=root; maxMatch=root;
+                cutted=1;
+            }
         }
     }
+    if (fail==2) fail=0;
     if (mode==1)
     {
         if (fail) fputs("unk\n",result_file);
@@ -104,7 +128,7 @@ void tokenize(char* begin,char* end,int mode,trieNode &res)
         {
             res.dead=0;
             for (int i=1;i<=dn;i++)
-                res.fpop.push_back(dEnd[i]);
+                res.fpop.push_back(dEnd[i]-dEnd[i-1]);
         }
     }
 }
@@ -136,12 +160,12 @@ void Initialize()
             q=now; l=0;
             while (q!=root) temp[l++]=trie[q].ch,q=trie[q].father;
             for (int i=l-1;i>=0;i--) buff[l-i-1]=temp[i];
-            for (int i=0;i<=l;i++) printf("%c",buff[i]);
-            printf(" fpop=[");
+        //    for (int i=0;i<=l;i++) printf("%c",buff[i]);
+        //    printf(" fpop=[");
             
             tokenize(buff,buff+l+1,0,trie[now]);
-            for (size_t i=0;i<trie[now].fpop.size();i++) printf("%d ,",trie[now].fpop[i]);
-            printf("]\n");
+        //    for (size_t i=0;i<trie[now].fpop.size();i++) printf("%d ,",trie[now].fpop[i]);
+        //    printf("]\n");
         //    if (trie[fa].dead) trie[now].dead=1;
         //    else {
         //        q=trie[fa].loc;
@@ -149,7 +173,7 @@ void Initialize()
 
         }
     }
-    for (int i=1;i<=tot;i++) printf("jump[%d]=%d\n",i,trie[i].jump);
+    //for (int i=1;i<=tot;i++) printf("jump[%d]=%d\n",i,trie[i].jump);
 }
 
 int main()
@@ -157,7 +181,7 @@ int main()
     char buff[maxL];
     
     tot=1; 
-    trie[root].jump=root; trie[root].dead=0;
+    trie[root].jump=root; trie[root].dead=1;
     trie[root].loc=root; trie[root].maxMatch=root;
 
     vocab_file=fopen("vocab.in","r");
